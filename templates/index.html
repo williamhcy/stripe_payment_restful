@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stripe Payment Demo1.1</title>
+    <script src="https://js.stripe.com/v3/"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            padding: 40px;
+            max-width: 500px;
+            width: 100%;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            color: #333;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            color: #666;
+            font-size: 1.1em;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 600;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e1e5e9;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: border-color 0.3s ease;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .amount-group {
+            display: flex;
+            gap: 10px;
+        }
+
+        .amount-group input {
+            flex: 2;
+        }
+
+        .amount-group select {
+            flex: 1;
+        }
+
+        .customer-info {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+
+        .customer-info h3 {
+            color: #333;
+            margin-bottom: 15px;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .error {
+            color: #e74c3c;
+            background: #fdf2f2;
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .success {
+            color: #27ae60;
+            background: #f0f9f0;
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .stripe-element {
+            padding: 15px;
+            border: 2px solid #e1e5e9;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+
+        .stripe-element:focus {
+            border-color: #667eea;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>💳 Payment Demo</h1>
+            <p>Secure payment processing with Stripe</p>
+        </div>
+
+        <div class="error" id="error-message"></div>
+        <div class="success" id="success-message"></div>
+
+        <form id="payment-form">
+            <div class="customer-info">
+                <h3>Customer Information</h3>
+                <div class="form-group">
+                    <label for="customer-name">Name</label>
+                    <input type="text" id="customer-name" name="customer-name" required>
+                </div>
+                <div class="form-group">
+                    <label for="customer-email">Email</label>
+                    <input type="email" id="customer-email" name="customer-email" required>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="amount">Amount</label>
+                <div class="amount-group">
+                    <input type="number" id="amount" name="amount" min="0.50" step="0.01" placeholder="10.00" required>
+                    <select id="currency" name="currency">
+                        <option value="usd">HKD</option>
+                        <option value="eur">EUR</option>
+                        <option value="gbp">GBP</option>
+                        <option value="cad">USD</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="card-element">Card Information</label>
+                <div id="card-element" class="stripe-element">
+                    <!-- Stripe Elements will create form elements here -->
+                </div>
+                <div id="card-errors" role="alert"></div>
+            </div>
+
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <p>Processing payment...</p>
+            </div>
+
+            <button type="submit" id="submit-button" class="btn">
+                Pay Now
+            </button>
+        </form>
+
+        <div style="text-align: center; margin-top: 20px;">
+            <p style="color: #666; margin-bottom: 10px;">Or try Stripe Checkout:</p>
+            <a href="/checkout" class="btn" style="background: linear-gradient(135deg, #27ae60 0%, #2ecc71 100%); text-decoration: none; display: inline-block;">
+                🛒 Use Stripe Checkout
+            </a>
+        </div>
+    </div>
+
+    <script>
+        // Initialize Stripe with your publishable key
+        const stripe = Stripe('pk_test_51S43mfAshgRjJ3phJYWdhInQnSPrPLZHFnDT9kogKArOmll3pmqnOE3ZRvKS62MkWN27BWyfFKzhgh0g4BflR8GQ00FZnBAzGl');
+        
+        // Create an instance of Elements
+        const elements = stripe.elements();
+        
+        // Create an instance of the card Element
+        const cardElement = elements.create('card', {
+            style: {
+                base: {
+                    fontSize: '16px',
+                    color: '#424770',
+                    '::placeholder': {
+                        color: '#aab7c4',
+                    },
+                },
+            },
+        });
+        
+        // Mount the card Element
+        cardElement.mount('#card-element');
+        
+        // Handle real-time validation errors from the card Element
+        cardElement.on('change', function(event) {
+            const displayError = document.getElementById('card-errors');
+            if (event.error) {
+                displayError.textContent = event.error.message;
+            } else {
+                displayError.textContent = '';
+            }
+        });
+        
+        // Handle form submission
+        const form = document.getElementById('payment-form');
+        form.addEventListener('submit', async function(event) {
+            event.preventDefault();
+            
+            const submitButton = document.getElementById('submit-button');
+            const loading = document.getElementById('loading');
+            const errorMessage = document.getElementById('error-message');
+            const successMessage = document.getElementById('success-message');
+            
+            // Show loading state
+            submitButton.disabled = true;
+            loading.style.display = 'block';
+            errorMessage.style.display = 'none';
+            successMessage.style.display = 'none';
+            
+            try {
+                // Get form data
+                const formData = new FormData(form);
+                const amount = parseFloat(formData.get('amount'));
+                const currency = formData.get('currency');
+                const customerName = formData.get('customer-name');
+                const customerEmail = formData.get('customer-email');
+                
+                // Create payment method using Stripe Elements (secure tokenization)
+                const {error: pmError, paymentMethod} = await stripe.createPaymentMethod({
+                    type: 'card',
+                    card: cardElement,
+                    billing_details: {
+                        name: customerName,
+                        email: customerEmail,
+                    },
+                });
+                
+                if (pmError) {
+                    throw new Error(pmError.message);
+                }
+                
+                // Create customer first
+                const customerResponse = await fetch('/create-customer', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        name: customerName,
+                        email: customerEmail
+                    })
+                });
+                
+                const customerData = await customerResponse.json();
+                
+                if (!customerResponse.ok) {
+                    throw new Error(customerData.error || 'Failed to create customer');
+                }
+                
+                // Create payment intent
+                const response = await fetch('/create-payment-intent', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        amount: amount,
+                        currency: currency
+                    })
+                });
+                
+                const data = await response.json();
+                
+                alert(response.ok);
+
+                if (!response.ok) {
+                    throw new Error(data.error || 'Failed to create payment intent');
+                }
+                
+                // Update PaymentIntent with payment method first
+                const updateResponse = await fetch('/update-payment-intent', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        payment_intent_id: data.payment_intent_id,
+                        payment_method: paymentMethod.id
+                    })
+                });
+                
+                const updateData = await updateResponse.json();
+                
+                if (!updateResponse.ok) {
+                    throw new Error(updateData.error || 'Failed to update payment intent');
+                }
+                
+                // Confirm payment with Stripe (handles redirects for 3D Secure)
+                const {error, paymentIntent} = await stripe.confirmPayment({
+                    clientSecret: data.client_secret,
+                    confirmParams: {
+                        return_url: window.location.origin + '/payment-success',
+                    },
+                });
+                
+                if (error) {
+                    throw new Error(error.message);
+                } else if (paymentIntent.status === 'succeeded') {
+                    // Payment succeeded
+                    successMessage.textContent = 'Payment successful! Redirecting...';
+                    successMessage.style.display = 'block';
+                    
+                    // Redirect to success page
+                    setTimeout(() => {
+                        window.location.href = '/payment-success';
+                    }, 2000);
+                } else if (paymentIntent.status === 'requires_action') {
+                    // Payment requires additional authentication (3D Secure)
+                    // Stripe will handle the redirect automatically
+                    console.log('Payment requires additional authentication');
+                } else {
+                    throw new Error(`Payment status: ${paymentIntent.status}`);
+                }
+                
+            } catch (error) {
+                errorMessage.textContent = error.message;
+                errorMessage.style.display = 'block';
+            } finally {
+                // Hide loading state
+                submitButton.disabled = false;
+                loading.style.display = 'none';
+            }
+        });
+    </script>
+</body>
+</html>

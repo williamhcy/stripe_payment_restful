@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payment Successful</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #27ae60 0%, #2ecc71 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            padding: 40px;
+            max-width: 500px;
+            width: 100%;
+            text-align: center;
+        }
+
+        .success-icon {
+            font-size: 4em;
+            color: #27ae60;
+            margin-bottom: 20px;
+        }
+
+        h1 {
+            color: #333;
+            font-size: 2.5em;
+            margin-bottom: 20px;
+        }
+
+        p {
+            color: #666;
+            font-size: 1.2em;
+            margin-bottom: 30px;
+            line-height: 1.6;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 15px 30px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            text-decoration: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            transition: transform 0.2s ease;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .details {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            text-align: left;
+        }
+
+        .details h3 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .details p {
+            color: #666;
+            font-size: 1em;
+            margin-bottom: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="success-icon">✅</div>
+        <h1>Payment Successful!</h1>
+        <p>Thank you for your payment. Your transaction has been completed successfully.</p>
+        
+        <div class="details">
+            <h3>Transaction Details</h3>
+            <p><strong>Status:</strong> Completed</p>
+            <p><strong>Payment Method:</strong> Credit Card</p>
+            <p><strong>Processing:</strong> Stripe Checkout</p>
+            <p><strong>Session ID:</strong> <span id="session-id">Loading...</span></p>
+            <p><strong>Payment ID:</strong> <span id="payment-id">{{payment_id}}</span></p>
+        </div>
+        
+        <a href="/" class="btn">Make Another Payment</a>
+        <a href="/checkout" class="btn" style="background: linear-gradient(135deg, #27ae60 0%, #2ecc71 100%); margin-left: 10px;">Try Stripe Checkout</a>
+    </div>
+
+    <script>
+        // Get session ID from URL parameters
+        const urlParams = new URLSearchParams(window.location.search);
+        const sessionId = urlParams.get('session_id');
+       
+        
+        if (sessionId) {
+            document.getElementById('session-id').textContent = sessionId;
+            
+        } else {
+            document.getElementById('session-id').textContent = 'Not available';
+        }
+    </script>
+</body>
+</html>
