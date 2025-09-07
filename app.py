@@ -549,5 +549,5 @@ if __name__ == '__main__':
     if ssl_context:
         print("run in SSL mode")
         app.run(host=host, port=port, debug=debug, ssl_context=ssl_context)
-    else
+    else:
         app.run(debug=True, host='0.0.0.0', port=5500)
