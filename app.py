@@ -148,7 +148,9 @@ def create_checkout_session():
         # Prepare data for Stripe Checkout Session
         random_id = str(datetime.now().timestamp())
         stripe_data = {
-            'payment_method_types[]': 'card',
+            'payment_method_types[0]': 'card',
+            'payment_method_types[1]': 'alipay',
+            'payment_method_types[2]': 'wechat_pay',
             'client_reference_id': random_id,
             'line_items[0][price_data][currency]': currency,
             'line_items[0][price_data][product_data][name]': 'Payment',
