@@ -151,7 +151,8 @@ def create_checkout_session():
             'payment_method_types[0]': 'card',
             'payment_method_types[1]': 'alipay',
             'payment_method_types[2]': 'wechat_pay',
-            'client_reference_id': random_id,
+            'payment_method_options[wechat_pay][client]':'web',
+        #    'client_reference_id': random_id,
             'line_items[0][price_data][currency]': currency,
             'line_items[0][price_data][product_data][name]': 'Payment',
             'line_items[0][price_data][unit_amount]': int(amount * 100),  # Convert to cents
@@ -159,8 +160,8 @@ def create_checkout_session():
             'mode': 'payment',
             'success_url': request.url_root + 'payment-success?session_id={CHECKOUT_SESSION_ID}',
             'cancel_url': request.url_root + 'payment-cancel',
-            'customer_email': customer_email,
-            'metadata[customer_name]': customer_name,
+        #    'customer_email': customer_email,
+        #    'metadata[customer_name]': customer_name,
             'metadata[integration_check]': 'accept_a_payment'
         }
         
@@ -532,4 +533,21 @@ def api_status():
         return jsonify(result), 500
 
 if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0', port=5000)
+
+    port = int(os.getenv('PORT', 5500))
+    host = os.getenv('HOST', '0.0.0.0')
+    debug = os.getenv('FLASK_ENV') != 'production'
+    # HTTPS configuration
+    ssl_context = None
+    if os.getenv('HTTPS_ENABLED', 'false').lower() == 'true':
+        ssl_cert = os.getenv('SSL_CERT_PATH', 'cert.pem')
+        ssl_key = os.getenv('SSL_KEY_PATH', 'key.pem')
+
+    if os.path.exists(ssl_cert) and os.path.exists(ssl_key):
+        ssl_context = (ssl_cert, ssl_key)
+
+    if ssl_context:
+        print("run in SSL mode")
+        app.run(host=host, port=port, debug=debug, ssl_context=ssl_context)
+    else
+        app.run(debug=True, host='0.0.0.0', port=5500)
